@@ -37,6 +37,7 @@ trap("INT") { exit 0 }
 loop do
   files.each do |file|
     if File.mtime(file) > times[file]
+      puts "#{file} changed, running command." if opts[:verbose]
       fork { exec command.gsub('%%', file) }
     end
     times[file] = File.mtime(file)
