@@ -1,0 +1,37 @@
+
+    -- trigger --
+
+trigger is a small program that launches a command when files that match a
+pattern are changed.
+
+Using trigger is really simple:
+
+  trigger pattern command
+
+The pattern must be a valid Ruby regular expression. trigger recursively
+searches for all files in the current directory, and keeps only files that
+match the given pattern.
+
+You can use %% in your command, it will be replaced with the name of the file
+that has changed.
+
+There are 2 available options:
+  -f, --freq: sets the monitoring frequency (defaults to 1 sec)
+  -v, --verbose: toggle verbose mode.
+
+EXAMPLE
+
+This command runs bacon tests whenever a spec of lib file changes:
+
+  trigger '(spec|lib)/.*\.rb' bacon spec/*_spec.rb
+
+You can use a shell script to achieve some autotest-like behaviour:
+  
+  trigger '(spec|lib)/.*\.rb' ./spec.sh
+
+  #!/bin/bash
+  log=`bacon spec/*_spec.rb`
+
+  if [ $? != 0 ]; then
+    notify-send "Tests failed" "$log"
+  fi
