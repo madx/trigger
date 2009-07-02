@@ -2,22 +2,25 @@
 eval DATA.read # trollop
 
 opts = Trollop.options do
-  banner "Usage: #{$0} [options] [command]"
-  opt :files, "File to monitor (comma separated)", :type => String
+  banner "Usage: #{$0} [options] pattern command"
   opt :freq,  "Monitoring frequency (default 1s)",
       :type => :int, :short => "n", :default => 1
   opt :verbose, "Toggle verbosity (default false)"
 end
 
-if !opts[:files_given]
-  Trollop.die :files, "is required"
+if ARGV.size < 2
+  puts "Not enough arguments (see -h)"
+  exit 1
 end
 
-files = Dir.glob(opts[:files])
+pattern = Regexp.new(ARGV.shift)
 
-if files.empty?
-  Trollop.die :files, 'requires existing files'
+files = []
+Dir["**/*"].each do |target|
+  files << target if target =~ pattern
 end
+
+command = ARGV.join(' ')
 
 puts "Monitoring: #{files.join(', ')}" if opts[:verbose]
 
@@ -34,13 +37,12 @@ trap("INT") { exit 0 }
 loop do
   files.each do |file|
     if File.mtime(file) > times[file]
-      system(command.gsub('%%', file))
+      fork { exec command.gsub('%%', file) }
     end
     times[file] = File.mtime(file)
   end
   sleep opts[:freq]
 end
-
 __END__
 ## lib/trollop.rb -- trollop command-line processing library
 ## Author::    William Morgan (mailto: wmorgan-trollop@masanjin.net)
