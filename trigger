@@ -15,9 +15,8 @@ end
 
 pattern = Regexp.new(ARGV.shift)
 
-files = []
-Dir["**/*"].each do |target|
-  files << target if target =~ pattern
+files = Dir["**/*"].select do |file|
+  File.file?(file) && file =~ pattern
 end
 
 command = ARGV.join(' ')
