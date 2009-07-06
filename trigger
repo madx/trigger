@@ -21,7 +21,11 @@ end
 
 command = ARGV.join(' ')
 
-puts "Monitoring: #{files.join(', ')}" if opts[:verbose]
+if opts[:verbose]
+  puts "Monitoring started: #{files.join(', ')}"
+else
+  puts "Monitoring started"
+end
 
 times = {}
 files.each { |file| times[file] = File.mtime(file) }
@@ -37,7 +41,8 @@ loop do
   files.each do |file|
     if File.mtime(file) > times[file]
       puts "#{file} changed, running command." if opts[:verbose]
-      fork { exec command.gsub('%%', file) }
+      pid = fork { exec command.gsub('%%', file) }
+      Process.detach pid
     end
     times[file] = File.mtime(file)
   end
